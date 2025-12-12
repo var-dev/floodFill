@@ -1,4 +1,6 @@
 import strict from "node:assert/strict"
+import { Grid } from 'grid'
+import { printImage } from "./utils.js"
 
 const image = Array.from(
 '..########################...........'+
@@ -30,54 +32,22 @@ const REPLACEMENT = 'O'
 const WALL = '#'
 
 
-type Coordinate = [number, number]
-
-class Grid<T> extends Array{
-  private readonly _width: number
-  private readonly _height: number
-  constructor(width: number, height: number, private outBoundsCbX: ()=>T | void = ()=>{}, private outBoundsCbY: ()=>T | void = ()=>{}, array: Array<T> = []){
-    super()
-    this._width = width
-    this._height = height
-    this.push(...array)
-  }
-  public index (x: number, y: number): number{
-    return y * this.width + x 
-  }
-  getXy(x: number, y: number): T {
-    if(x < 0 || x >= this.width ) { return this.outBoundsCbX() ?? this[0] }
-    if(y < 0 || y >= this.height) { return this.outBoundsCbY() ?? this[0] }
-    return this[this.index(x, y)]
-  }
-  setXy(x: number, y: number, value: T): T{
-    if(x < 0 || x >= this.width ) { return this.outBoundsCbX() ?? this[0] }
-    if(y < 0 || y >= this.height) { return this.outBoundsCbY() ?? this[0] }
-    this[this.index(x, y)] = value
-    return value
-  }
-  get width(){
-    return this._width
-  }
-  get height(){
-    return this._height
-  }
-}
 
 function doesNorthNeedWork(x: number, y: number, img: Grid<string>): boolean{
-  return img.getXy(x, y - 1) === ORIGINAL
+  return img.getCell(x, y - 1) === ORIGINAL
 }
 function doesSouthNeedWork(x: number, y: number, img: Grid<string>): boolean{
-  return img.getXy(x, y + 1) === ORIGINAL
+  return img.getCell(x, y + 1) === ORIGINAL
 }
 function doesEastNeedWork(x: number, y: number, img: Grid<string>): boolean{
-  return img.getXy(x - 1, y) === ORIGINAL
+  return img.getCell(x - 1, y) === ORIGINAL
 }
 function doesWestNeedWork(x: number, y: number, img: Grid<string>): boolean{
-  return img.getXy(x + 1, y) === ORIGINAL
+  return img.getCell(x + 1, y) === ORIGINAL
 }
 
 function floodFill(x: number, y: number, img: Grid<string>){
-  img.setXy(x, y, REPLACEMENT)
+  img.setCell(x, y, REPLACEMENT)
   if(doesNorthNeedWork(x, y, img)){
     floodFill(x, y - 1, img)
   }
@@ -92,17 +62,11 @@ function floodFill(x: number, y: number, img: Grid<string>){
   }
 }
 
-function printImage(img: Array<string>): string{
-  let result = ''
-  for(let i = 0; i < HEIGHT; i++){
-    result += (img.slice(i * WIDTH, (i + 1) * WIDTH).join('')) + '\n'
-  }
-  return result
-}
 
-console.log(printImage(image))
+
+console.log(printImage(image, WIDTH, HEIGHT))
 const grid = new Grid(WIDTH, HEIGHT, ()=>'X', ()=>'X', [...image]  )
 floodFill(4,4, grid)
-console.log(printImage(grid))
-// console.log(grid.getXy(5,5))
+console.log(printImage(grid, WIDTH, HEIGHT))
+// console.log(grid.getCell(5,5))
 
