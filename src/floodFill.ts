@@ -35,7 +35,7 @@ type Coordinate = [number, number]
 class Grid<T> extends Array{
   private readonly _width: number
   private readonly _height: number
-  constructor(width: number, height: number, private cbW: ()=>T | void = ()=>{}, private cbH: ()=>T | void = ()=>{}, array: Array<T> = []){
+  constructor(width: number, height: number, private outBoundsCbX: ()=>T | void = ()=>{}, private outBoundsCbY: ()=>T | void = ()=>{}, array: Array<T> = []){
     super()
     this._width = width
     this._height = height
@@ -45,13 +45,13 @@ class Grid<T> extends Array{
     return y * this.width + x 
   }
   getXy(x: number, y: number): T {
-    if(x < 0 || x >= this.width ) { return this.cbW() ?? this[0][0] }
-    if(y < 0 || y >= this.height) { return this.cbH() ?? this[0][0] }
+    if(x < 0 || x >= this.width ) { return this.outBoundsCbX() ?? this[0] }
+    if(y < 0 || y >= this.height) { return this.outBoundsCbY() ?? this[0] }
     return this[this.index(x, y)]
   }
   setXy(x: number, y: number, value: T): T{
-    if(x < 0 || x >= this.width ) { return this.cbW() ?? this[0][0] }
-    if(y < 0 || y >= this.height) { return this.cbH() ?? this[0][0] }
+    if(x < 0 || x >= this.width ) { return this.outBoundsCbX() ?? this[0] }
+    if(y < 0 || y >= this.height) { return this.outBoundsCbY() ?? this[0] }
     this[this.index(x, y)] = value
     return value
   }
@@ -63,50 +63,32 @@ class Grid<T> extends Array{
   }
 }
 
-function calculateCoordinateFromIndex(i: number): Coordinate{
-  return [i % WIDTH, Math.floor(i / WIDTH)]
-}
-
-function calculateIndexFromCoordinate(c: Coordinate): number{ 
-  return c[1] * WIDTH + c[0]
-}
-
-function doesNorthNeedWork(c: Coordinate, img: Grid<string>): boolean{
-  const [x, y] = c
+function doesNorthNeedWork(x: number, y: number, img: Grid<string>): boolean{
   return img.getXy(x, y - 1) === ORIGINAL
 }
-function doesSouthNeedWork(c: Coordinate, img: Grid<string>): boolean{
-  const [x, y] = c
+function doesSouthNeedWork(x: number, y: number, img: Grid<string>): boolean{
   return img.getXy(x, y + 1) === ORIGINAL
 }
-function doesEastNeedWork(c: Coordinate, img: Grid<string>): boolean{
-  const [x, y] = c
+function doesEastNeedWork(x: number, y: number, img: Grid<string>): boolean{
   return img.getXy(x - 1, y) === ORIGINAL
 }
-function doesWestNeedWork(c: Coordinate, img: Grid<string>): boolean{
-  const [x, y] = c
+function doesWestNeedWork(x: number, y: number, img: Grid<string>): boolean{
   return img.getXy(x + 1, y) === ORIGINAL
 }
 
-function isCoordinateNotValid(c: Coordinate, img: Array<string>): boolean{
-  const [x, y] = c
-  return (img[calculateIndexFromCoordinate(c)] ?? 'X') !== (ORIGINAL || REPLACEMENT)
-}
-
-function floodFill(start: Coordinate, img: Grid<string>){
-  // if(isCoordinateNotValid(start, img)) return
-  console.log(img.setXy(start[0], start[1], REPLACEMENT))
-  if(doesNorthNeedWork(start, img)){
-    floodFill([start[0], start[1] - 1], img)
+function floodFill(x: number, y: number, img: Grid<string>){
+  img.setXy(x, y, REPLACEMENT)
+  if(doesNorthNeedWork(x, y, img)){
+    floodFill(x, y - 1, img)
   }
-  if(doesSouthNeedWork(start, img)){
-    floodFill([start[0], start[1] + 1], img)
+  if(doesSouthNeedWork(x, y, img)){
+    floodFill(x, y + 1, img)
   }
-  if(doesEastNeedWork(start, img)){
-    floodFill([start[0] - 1, start[1]], img)
+  if(doesEastNeedWork(x, y, img)){
+    floodFill(x - 1, y, img)
   }
-  if(doesWestNeedWork(start, img)){
-    floodFill([start[0] + 1, start[1]], img)
+  if(doesWestNeedWork(x, y, img)){
+    floodFill(x + 1, y, img)
   }
 }
 
@@ -120,7 +102,7 @@ function printImage(img: Array<string>): string{
 
 console.log(printImage(image))
 const grid = new Grid(WIDTH, HEIGHT, ()=>'X', ()=>'X', [...image]  )
-floodFill([34,0], grid)
+floodFill(4,4, grid)
 console.log(printImage(grid))
 // console.log(grid.getXy(5,5))
 
