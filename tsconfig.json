@@ -11,7 +11,7 @@
     "target": "esnext",
     // For nodejs:
     "lib": ["ESNext", "DOM"],
-    // "types": ["node"],
+    "types": ["node"],
     // and npm install -D @types/node
 
     // Other Outputs
@@ -42,10 +42,11 @@
     "forceConsistentCasingInFileNames": true,
     "typeRoots": ["./node_modules/@types"],
     "allowJs": true,
-    "checkJs": true,
+    "checkJs": false,
     "noEmit": true,
     "experimentalDecorators": true,
+    "esModuleInterop": true,
   },
-  "include": ["src",],
+  "include": ["src","test"],
   "exclude": ["node_modules", "dist"]
 }
